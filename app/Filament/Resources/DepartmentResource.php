@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\CityResource\RelationManagers\EmployeesRelationManager;
 use App\Filament\Resources\DepartmentResource\Pages;
 use App\Filament\Resources\DepartmentResource\RelationManagers;
 use App\Models\Department;
@@ -21,7 +22,9 @@ class DepartmentResource extends Resource
 {
     protected static ?string $model = Department::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-collection';
+    protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
+    protected static ?string $navigationGroup = 'System Management';
+    protected static ?int $navigationSort = 3;
 
     public static function form(Form $form): Form
     {
@@ -29,6 +32,8 @@ class DepartmentResource extends Resource
             ->schema([
                 Card::make()->schema([
                         TextInput::make('name')
+                        ->required()
+                        ->maxLength(255)
                     ])
             ]);
     }
@@ -55,7 +60,7 @@ class DepartmentResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            EmployeesRelationManager::class,
         ];
     }
 

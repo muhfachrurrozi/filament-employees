@@ -2,9 +2,13 @@
 
 namespace App\Filament\Resources;
 
+use Closure;
 use App\Filament\Resources\EmployeeResource\Pages;
 use App\Filament\Resources\EmployeeResource\RelationManagers;
+use App\Models\Country;
 use App\Models\Employee;
+use App\Models\State;
+use App\Models\City;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
@@ -29,18 +33,38 @@ class EmployeeResource extends Resource
     {
         return $form
             ->schema([
-                Card::make()->schema([
-                    Select::make('country_id')
-                        ->relationship('country', 'name')->required(),
+                Card::make()
+                    ->schema([
+                        Select::make('country_id')
+                            ->label('Country')
+                            ->options(Country::all()->pluck('name', 'id')->toArray())
+                            ->reactive()
+                            ->afterStateUpdated(fn (callable $set) => $set('state_id', null)),
 
-                    Select::make('state_id')
-                        ->relationship('state', 'name')->required(),
+                        select::make('state_id')
+                            ->label('State')
+                            ->options(function (callable $get){
+                                $country = Country::find($get('country_id'));
+                                if(! $country){
+                                    return State::all()->pluck('name', 'id');
+                                }
+                                return $country->states->pluck('name', 'id');
+                            })
+                            ->reactive()
+                            ->afterStateUpdated(fn (callable $set) => $set('city_id', null)),
 
-                    Select::make('city_id')
-                        ->relationship('city', 'name')->required(),
+                        select::make('city_id')
+                            ->label('City')
+                            ->options(function (callable $get){
+                                $state = State::find($get('state_id'));
+                                if(! $state){
+                                    return City::all()->pluck('name', 'id');
+                                }
+                                return $state->cities->pluck('name', 'id');
+                            }),
 
-                    Select::make('department_id')
-                        ->relationship('department', 'name')->required(),
+                        Select::make('department_id')
+                            ->relationship('department', 'name')->required(),
 
                         TextInput::make('first_name')->required(),
                         TextInput::make('last_name')->required(),
